@@ -1,4 +1,4 @@
-#Gosha revision: 4_0g21_0(new year edition)
+#Gosha revision: 5_0g22_0
 #Модули:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Распознание голоса
 import speech_recognition as sr
@@ -27,6 +27,8 @@ from tqdm import tqdm
 from sys import exit
 #Цветной вывод
 from termcolor import colored
+#Json
+import json
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 pg.mixer.init()
@@ -52,21 +54,6 @@ help_file = "1)Создать файл или папку\n2)Переименов
 #Шутки
 joke1 = ["Я не знаю шуток! ха-ха!",  "Знаешь почему курица перешла дорогу? Потому что она умеет ходить! ха-ха!", "Россия - страна непойманных воров и вечно будущего счастья...", "Если вдоль зебры лежат полицейские, значит, охота не удалась.","Детство - это когда кот старше тебя.","Идея тонкого комплимента: 'Маска тебе к лицу!'","Очень боюсь, что хакеры сольют в сеть мои интимные фото. И они никому не понравятся."]
 
-#Словарь обращений
-appeal = {"помощь": ["помощь", "помоги мне", "список команд", "что ты умеешь"],
-		  "время": ["время", "который час", "сколько времени", "назови время"],
-		  "завершить работу": ["завершить работу", "увидимся"],
-		  "документация": ["документация", "покажи документацию", "у тебя есть инструкция", "где версии"],
-		  "управление файлами": ["управление файлами", "файлы", "я бог файлов"],
-		  "шутки": ["шутки", "расскажи шутку", "ты знаешь шутку"],
-		  "погода": ["погода", "какая погода", "прогноз погоды"],
-		  "переводчик": ["переводчик", "переведи мне", "можешь перевести"],
-          "выключение компьютера": ["выключи компьютер", "выключение", "выключение компьютера"],
-		  "список микрофонов": ["список микрофонов", "микрофоны"],
-		  "список цветов шрифта": ["список цветов шрифта", "цвета шрифта"],
-		  "новогоднее поздравление": ["новогоднее поздравление"]
-}
-
 #Пасхалки
 pasx_list = ["pasx.wav","pasx2.wav","pasx3.wav","pasx4.wav"]
 
@@ -76,61 +63,19 @@ type_micr = sr.Microphone.list_microphone_names()
 #Список цветов
 list_colors = ["grey", "red", "green", "yellow", "blue", "magenta", "cyan", "white"]
 
-#Настройки------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-with open("Settings.py", "r") as st:
-    line = st.read().splitlines()
+#Микрофон и цвет
+with open("config.json", "r") as read_file: 
+    b = json.load(read_file)
 
-#Микрофон------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-line_micr = line[1]
-
-word = []
-
-for i in line_micr:
-    word.append(i)
-
-micr = 0
-
-word1 = [i for i in word if i.isnumeric()]
-
-for i in word1:
-    micr += int(i)
-
-#Цвет шрифта------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-line_color = line[2]
-
-word_2 = []
-
-for i in line_color:
-    word_2.append(i)
-
-for i in word_2:
-    if i == "'":
-        pos = word_2.index("'")
-        break
-
-len_list = len(word_2)
-len_list_i = len_list - pos
-word2 = word_2[pos+1:-1]
-
-for i in word2:
-    if i == "'":
-        pos = word2.index("'")
-        break
-
-word3 = word2[:pos]
-
-color_index = ""
-
-for i in word3:
-    color_index += str(i)
+#Словарь обращений
+with open("vocabulary.json", "r", encoding="UTF=8") as read_file: 
+    b_voc = json.load(read_file)
 
 #Основные функции------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #Говорение
 def speak(what):
-    print(colored(what, color_index))
+    print(colored(what, b["fontColor"]))
     engine.say( what )
     engine.runAndWait()
     engine.stop()
@@ -146,7 +91,7 @@ def joke():
 #Помощь
 def help():
 	speak("Список комманд: ")
-	speak(help_list)
+	print(colored(help_list, b["fontColor"]))
 
 #Время
 def time():
@@ -157,7 +102,7 @@ def time():
 def pasx():
 	for i in tqdm(range(100)):
 		t.sleep(0.01)
-	print(colored(Ascii.pasx_image, color_index))
+	print(colored(Ascii.pasx_image, b["fontColor"]))
 	asd = random.choice(pasx_list)
 	pasx = pg.mixer.Sound(os.path.dirname(os.path.abspath(__file__)) + f"\\Data_Gosha\\Music\\Pasx_Gosha\\{asd}")
 	pasx.play()
@@ -165,23 +110,13 @@ def pasx():
 	if gh == "stop":
 		pasx.stop()
 
-def pacx2():
-	for i in tqdm(range(100)):
-		t.sleep(0.01)
-	print(colored(Ascii.pacx_image2, color_index))
-	pasx2a = pg.mixer.Sound(os.path.dirname(os.path.abspath(__file__)) + f"\\Data_Gosha\\Music\\Pasx_Gosha\\Pasxan.wav")
-	pasx2a.play()
-	gh2 = input()
-	if gh2 == "stop":
-		pasx2a.stop()
-
 #Документация
 def doc():
 	speak("Открытие...")
 	for i in tqdm(range(100)):
 		t.sleep(0.01)
 	t.sleep(1)
-	os.startfile(os.path.dirname(os.path.abspath(__file__)) + "\\Gosha_Doc.chm")
+	os.startfile(os.path.dirname(os.path.abspath(__file__)) + "\\Gosha Doc.chm")
 
 #Переводчик
 def transletor():
@@ -223,29 +158,11 @@ def weather_jk():
 	except:
 		speak("Такого города не существует!")
 
-#Новогоднее поздравление
-def new_year_greetings():
-	print(colored(Ascii.nyg, color_index))
-
-	speak("""Новогоднее поздравление от Gosha и его автора!""")
-			
-	speak("""Дорогие пользователи, друзья и просто рандомные люди, новый год на носу или у кого то уже наступил.""")
-
-	speak("""Я знаю, что это поздравление похоже на поздравление В.В.Путина, но это моё поздравление.""")
-	
-	speak("""Я был очень счастлив разрабатывать это обновление для вас.""")
-	
-	speak("""Надеюсь, что у каждого из вас будет все хорошо в жизни.""")
-	
-	speak("""Свое поздравление я хочу завершить последними очень важными словами: Чтобы жили все богато и у всех росла зарплата(хех, я знаю что это из мультфильма:) )! """)
-	
-	speak("""С наступившим или наступающим новым годом от Gosha и его разработчика DimaK! """)
-
 #Функции для работы с файлами-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #Управление файлами
 def file_meneger():	
-	print(colored(help_file, color_index))
+	print(colored(help_file, b["fontColor"]))
 	help_file_quest = input()
 	if help_file_quest == "1)":
 		new_file()
@@ -399,21 +316,18 @@ def dir_gg():
 
 #Приветствие-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 try:
-	print(colored(Ascii.start, color_index))
-	t.sleep(5)
-	print(colored(Ascii.hny, color_index))
+	print(colored(Ascii.start, b["fontColor"]))
 except:
 	color_index = "white"
 	speak("Выбран неверный цвет! Смена цвета...")
-	print(colored(Ascii.start, color_index))
+	print(colored(Ascii.start, b["fontColor"]))
 
 
 for i in tqdm(range(100)):
     t.sleep(0.01)
 
-speak("Здравствуй! Тебя приветствует голосовой помощник Gosha!")
-speak("Жду твоих указаний:")
-
+speak("Привет, я Гоша!")
+speak("Что, будем делать?")
 
 #Основной цикл-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 run = True
@@ -421,100 +335,96 @@ while run:
 	try:
 		r = sr.Recognizer()
 		try:
-			with sr.Microphone(device_index=micr) as source:
-				print(colored("Слушаю...", color_index))
+			with sr.Microphone(device_index=b["microphoneType"]) as source:
+				print(colored("Слушаю...", b["fontColor"]))
 				audio = r.listen(source)
 		
 		except:
-			speak("Извините, но без микрофона я не могу работать!")
+			speak("Извини, но без микрофона я не могу работать!")
 			speak("Вот список микрофонов(На чтение тебе даётся 1 минута, затем я выключусь:( ): ")
 			for i in range(len(type_micr)):
-				print(i, colored(type_micr[i], color_index))
+				print(i, colored(type_micr[i], b["fontColor"]))
 			t.sleep(60)
 			exit()
 
 		what = r.recognize_google(audio, language = "ru-RU").lower()
-		print(colored(what, color_index))
+		print(colored(what, b["fontColor"]))
 
 		#Помощь
-		if what in appeal["помощь"]:
+		if what in b_voc["help"]:
 			help()
 		
 		#Время
-		elif what in appeal["время"]:
+		elif what in b_voc["time"]:
 			time()
 
 		#Выйти
-		elif what in appeal["завершить работу"]:
+		elif what in b_voc["exit"]:
 			speak("До встречи!")
 			run = False
 		
 		#Шутка
-		elif what in appeal["шутки"]:
+		elif what in b_voc["jokes"]:
 			joke()
 
 		#Пасхалки
 		elif what == "1987":
 			pasx()
 
-		elif what == "пять невест":
-			pacx2()
-
 		#Управление файлами
-		elif what in appeal["управление файлами"]:
+		elif what in b_voc["files"]:
 			speak("Что ты хочешь сделать?")
 			file_meneger()
 
 		#Документация
-		elif what in appeal["документация"]:
+		elif what in b_voc["doc"]:
 			doc()
 
 		#Погода
-		elif what in appeal["погода"]:
+		elif what in b_voc["weather"]:
 			weather_jk()
 		
 		#Переводчик
-		elif what in appeal["переводчик"]:
+		elif what in b_voc["translate"]:
 			transletor()
 		
 		#Автор
 		elif what == "автор":
-			speak("Мой автор отбитый на голову человек! Но я всё равно ему благодарен за создание меня! Мой автор: DimaK")
+			speak("Мой автор отбитый на голову человек! Но я всё равно ему благодарен за создание меня! Мой автор: Дмитрий Коваленко")
 
 		#Выключение компьютера
-		elif what in appeal["выключение компьютера"]:
+		elif what in b_voc["shutdown"]:
 			speak("Предупреждение! Выключение произойдёт через 5 секунд!")
 			t.sleep(5)
 			os.system("shutdown /s")
 		
 		#Список микрофонов
-		elif what in appeal["список микрофонов"]:
+		elif what in b_voc["micr"]:
 			for i in tqdm(range(100)):
 				t.sleep(0.01)
 			
 			for i in range(len(type_micr)):
-				print(i, colored(type_micr[i], color_index))
+				print(i, colored(type_micr[i], b["fontColor"]))
 
 		#Список цветов шрифта
-		elif what in appeal["список цветов шрифта"]:
+		elif what in b_voc["colors"]:
 			for i in tqdm(range(100)):
 				t.sleep(0.01)
 
 			for i in range(len(list_colors)):
-				print(i, colored(list_colors[i], color_index))
-		
-		#Новогоднее поздравление
-		elif what in appeal["новогоднее поздравление"]:
-			new_year_greetings()
+				print(i, colored(list_colors[i], b["fontColor"]))
 
 		#Ни одна комманда не сработала
 		else:
-			speak("Извини! Такой комманды не существует!")
+			speak("Либо я тупой, либо лыжи не едут :)")
+			print(colored("Что-то не так в твоём запросе", b["fontColor"]))
 
 	except sr.UnknownValueError:
-		speak("Я тебя не слышу! Повторите попытку!")
+		# speak("Я тебя не слышу! Повтори попытку!")
+		print(colored("Режим ожидания включен!", b["fontColor"]))
+		continue
 	except sr.RequestError:
-		speak("Плохое соеденение с интернетом:(")
+		speak("Плохое соеденение с интернетом :(")
 		exit()
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Автор: DimaK
